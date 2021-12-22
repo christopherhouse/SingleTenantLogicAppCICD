@@ -76,7 +76,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' = {
 }
 
 resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-06-01' = {
-  name: '${storageAccountName}/default/${ordersInputContainerName}'
+  name: '${storageAccount.name}/default/${ordersInputContainerName}'
   properties: {
     publicAccess: 'None'
   }
