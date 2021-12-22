@@ -3,6 +3,9 @@ param databaseName string
 param ordersContainerName string
 param ordersContainerPartitionKeyPath string
 
+param storageAccountName string
+param ordersInputContainerName string
+
 var location = resourceGroup().location
 
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
@@ -59,5 +62,22 @@ resource ordersContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
         ]
       }
     }
+  }
+}
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {}
+}
+
+resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-06-01' = {
+  name: '${storageAccount}/default/${ordersInputContainerName}'
+  properties: {
+    publicAccess: 'None'
   }
 }
