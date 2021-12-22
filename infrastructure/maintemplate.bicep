@@ -6,7 +6,11 @@ param ordersContainerPartitionKeyPath string
 param storageAccountName string
 param ordersInputContainerName string
 
+param logicAppName string
+param logicAppStorageAccountName string
+
 var location = resourceGroup().location
+var logicAppPlanName = '${logicAppName}-asp'
 
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
   name: cosmosAccountName
@@ -79,5 +83,124 @@ resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@20
   name: '${storageAccount.name}/default/${ordersInputContainerName}'
   properties: {
     publicAccess: 'None'
+  }
+}
+
+resource logicAppStorageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' = {
+  name: logicAppStorageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {}
+}
+
+resource logicAppShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-06-01' = {
+  name: '${logicAppStorageAccount.name}/default/${logicAppName}'
+  properties: {
+    accessTier: 'TransactionOptimized'
+    shareQuota: 5120
+    enabledProtocols: 'SMB'
+  }
+}
+
+resource logicAppPlan 'Microsoft.Web/serverfarms@2021-02-01' = {
+  name: logicAppPlanName
+  location: location
+  sku:{
+    name: 'WS1'
+    tier: 'WorkflowStandard'
+    size: 'WS1'
+    family: 'WS'
+    capacity: 1
+  }
+  kind: 'elastic'
+  properties: {
+    perSiteScaling: false
+    elasticScaleEnabled: true
+    maximumElasticWorkerCount: 20
+    isSpot: false
+    reserved: false
+    isXenon: false
+    hyperV: false
+    targetWorkerCount: 0
+    targetWorkerSizeId: 0
+    zoneRedundant: false
+  }
+}
+
+resource logicApp 'Microsoft.Web/sites@2021-02-01' = {
+  name: logicAppName
+  location: location
+  kind: 'functionapp,workflowapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    enabled: true
+    serverFarmId: logicAppPlan.id
+    reserved: false
+    isXenon: false
+    hyperV: false
+    siteConfig: {
+      numberOfWorkers: 1
+      acrUseManagedIdentityCreds: false
+      alwaysOn: false
+      http20Enabled: false
+      functionAppScaleLimit: 0
+      minimumElasticInstanceCount: 1
+      appSettings: [
+        {
+          name: 'APP_KIND'
+          value: 'workflowApp'
+        }
+        {
+          name: 'AzureFunctionsJobHost__extensionBundle__id'
+          value: 'Microsoft.Azure.Functions.ExtensionBundle.Workflows'
+        }
+        {
+          name: 'AzureFunctionsJobHost__extensionBundle__version'
+          value: '[1.*, 2.0.0)'
+        }
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${logicAppStorageAccount.name};AccountKey=${logicAppStorageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage};'
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'FUNCTIONS_V2_COMPATABILITY_MODE'
+          value: 'true'
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'node'
+        }
+        {
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${logicAppStorageAccount.name};AccountKey=${logicAppStorageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage};'
+        }
+        {
+          name: 'WEBSITE_CONTENTSHARE'
+          value: logicAppName
+        }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '~12'
+        }
+      ]
+    }
+    scmSiteAlsoStopped: false
+    clientAffinityEnabled: false
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    dailyMemoryTimeQuota: 0
+    httpsOnly: false
+    redundancyMode: 'None'
+    storageAccountRequired: false
+    keyVaultReferenceIdentity: 'SystemAssigned'
   }
 }
