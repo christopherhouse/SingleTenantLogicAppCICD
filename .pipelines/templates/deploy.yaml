@@ -19,3 +19,23 @@ stages:
     - group: ${{ parameters.variableGroupName }}
     pool:
       vmImage: ubuntu-latest
+    stategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: infrastructure
+          
+          - task: AzureCLI@2
+            displayName: Deploy Infrastructure
+            inputs:
+              azureSubscription: ${{ parameters.serviceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                DEPLOYMENT_NAME="single-tenant-logic-app-$(date '+%F_%H_%M_%S'')"
+                echo "Using deployment name $DEPLOYMENT_NAME"
+                
+                az group create --location $(region) --name $(resourceGroupName)
+
+                az group deployment create -G "$(resourceGroupName)" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters 
