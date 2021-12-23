@@ -3,10 +3,12 @@ parameters:
   default: ''
 - name: environment
   default: ''
-- name: variableGroupName
-  default: ''
 - name: serviceConnection
   default: ''
+- name: resourceGroupName
+  default: ''
+- name: region
+  default: 'eastus'
 
 stages:
 - stage: ${{ parameters.stageName }}
@@ -16,7 +18,8 @@ stages:
     displayName: Deploy
     environment: ${{ parameters.environment }}
     variables:
-    - group: ${{ parameters.variableGroupName }}
+    - name: parameterFile
+      value: '$(Pipeline.Workspace)/infrastructure/parameters/parameters.${{ parameters.environment }}.json'
     pool:
       vmImage: ubuntu-latest
     stategy:
@@ -36,6 +39,6 @@ stages:
                 DEPLOYMENT_NAME="single-tenant-logic-app-$(date '+%F_%H_%M_%S'')"
                 echo "Using deployment name $DEPLOYMENT_NAME"
                 
-                az group create --location $(region) --name $(resourceGroupName)
+                az group create --location ${{ parameters.region }} --name ${{ parameters.resourceGroupName }}
 
-                az group deployment create -G "$(resourceGroupName)" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters 
+                az group deployment create -G "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters @$(paremterFile)
