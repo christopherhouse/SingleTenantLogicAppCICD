@@ -36,8 +36,9 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                DEPLOYMENT_NAME="single-tenant-logic-app-$(date '+%F_%H_%M_%S'')"
+                DEPLOYMENT_NAME="single-tenant-logic-app-$(date '+%F_%H_%M_%S')"
                 echo "Using deployment name $DEPLOYMENT_NAME"
+                echo "Using parameter file $(parameterFile)"
                 
                 az group create --location ${{ parameters.region }} --name ${{ parameters.resourceGroupName }}
 
