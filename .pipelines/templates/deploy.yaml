@@ -19,7 +19,7 @@ stages:
     environment: ${{ parameters.environment }}
     variables:
     - name: parameterFile
-      value: '$(Pipeline.Workspace)/infrastructure/parameters/parameters.${{ parameters.environment }}.json'
+      value: '@$(Pipeline.Workspace)/infrastructure/parameters/parameters.${{ parameters.environment }}.json'
     pool:
       vmImage: ubuntu-latest
     strategy:
@@ -42,4 +42,4 @@ stages:
 
                 az group create --location ${{ parameters.region }} --name ${{ parameters.resourceGroupName }}
 
-                az group deployment create -g "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters @$(paremterFile)
+                az group deployment create -g "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters $(paramterFile)
