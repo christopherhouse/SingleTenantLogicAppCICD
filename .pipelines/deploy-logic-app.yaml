@@ -13,6 +13,8 @@ stages:
   jobs:
   - job: Build
     displayName: Build infrastructure and code
+    pool:
+      vmImage: ubuntu-latest    
     steps:
     - task: AzureCLI@2
       displayName: Build Bicep template
@@ -29,4 +31,3 @@ stages:
         targetPath: $(System.DefaultWorkingDirectory)/infrastructure
         artifact: infrastructure
         publishLocation: pipeline
-        
