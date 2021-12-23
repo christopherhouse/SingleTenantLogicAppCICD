@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "cosmosAccountName": {
+        "value": "cmhcosmosdb01"
+      },
+      "databaseName": {
+        "value": "orderProcessing"
+      },
+      "ordersContainerName": {
+        "value": "orders"
+      },
+      "ordersContainerPartitionKeyPath": {
+        "value": "/customerId"
+      },
+      "storageAccountName": {
+        "value": "cmhlastore"
+      },
+      "ordersInputContainerName": {
+        "value": "orders"
+      },
+      "logicAppName": {
+        "value": "cmhstlap01"
+      },
+      "logicAppStorageAccountName": {
+        "value": "cmhstlap01store"
+      },
+      "logAnalyticsWorkspaceName": {
+        "value": "cmhstlalaws01"
+      },
+      "appInsightsName": {
+        "value": "cmhstlap01-ai"
+      }
+    }
+  }
