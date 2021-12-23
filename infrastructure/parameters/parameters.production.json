@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
       "cosmosAccountName": {
-        "value": "cmhcosmosdb01"
+        "value": "cmhcosmosdb01-p"
       },
       "databaseName": {
         "value": "orderProcessing"
@@ -15,22 +15,22 @@
         "value": "/customerId"
       },
       "storageAccountName": {
-        "value": "cmhlastore"
+        "value": "cmhlastorep"
       },
       "ordersInputContainerName": {
         "value": "orders"
       },
       "logicAppName": {
-        "value": "cmhstlap01"
+        "value": "cmhstlap01-p"
       },
       "logicAppStorageAccountName": {
-        "value": "cmhstlap01store"
+        "value": "cmhstlap01storep"
       },
       "logAnalyticsWorkspaceName": {
-        "value": "cmhstlalaws01"
+        "value": "cmhstlalaws01-p"
       },
       "appInsightsName": {
-        "value": "cmhstlap01-ai"
+        "value": "cmhstlap01-ai-p"
       }
     }
   }

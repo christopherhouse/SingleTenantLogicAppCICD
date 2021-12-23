@@ -27,6 +27,7 @@ stages:
           az bicep build --file $(System.DefaultWorkingDirectory)/infrastructure/maintemplate.bicep
 
     - task: PublishPipelineArtifact@1
+      displayName: Publish infrastructure artifacts
       inputs:
         targetPath: $(System.DefaultWorkingDirectory)/infrastructure
         artifact: infrastructure
@@ -39,3 +40,11 @@ stages:
     serviceConnection: MSDN
     resourceGroupName: LA-CI-CD
     region: eastus
+
+- template: templates/deploy.yaml
+  parameters:
+    stageName: DeployProduction
+    environment: production
+    serviceConnection: AIRS
+    resourceGroupName: LA-CI-CD-P
+    region: eastus2

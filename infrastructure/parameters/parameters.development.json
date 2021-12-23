@@ -15,7 +15,7 @@
         "value": "/customerId"
       },
       "storageAccountName": {
-        "value": "cmhlastore"
+        "value": "cmhstlastore"
       },
       "ordersInputContainerName": {
         "value": "orders"
