@@ -1,0 +1,32 @@
+trigger:
+  branches:
+    include:
+    - main # Only run on changes to main
+
+pr:
+  branches:
+    exclude:
+    - '*' # Don't run for PRs
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    displayName: Build infrastructure and code
+    steps:
+    - task: AzureCLI@2
+      displayName: Build Bicep template
+      inputs:
+        azureSubscription: MSDN
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az bicep install
+          az bicep build --file $(System.DefaultWorkingDirectory)/infrastructure/maintemplate.bicep
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: $(System.DefaultWorkingDirectory)/infrastructure
+        artifact: infrastructure
+        publishLocation: pipeline
+        
