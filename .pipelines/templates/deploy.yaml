@@ -22,7 +22,7 @@ stages:
       value: '$(Pipeline.Workspace)/infrastructure/parameters/parameters.${{ parameters.environment }}.json'
     pool:
       vmImage: ubuntu-latest
-    stategy:
+    strategy:
       runOnce:
         deploy:
           steps:
