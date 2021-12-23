@@ -1,0 +1,21 @@
+parameters:
+- name: stageName
+  default: ''
+- name: environment
+  default: ''
+- name: variableGroupName
+  default: ''
+- name: serviceConnection
+  default: ''
+
+stages:
+- stage: ${{ parameters.stageName }}
+  displayName: ${{ parameters.stageName }}
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: ${{ parameters.environment }}
+    variables:
+    - group: ${{ parameters.variableGroupName }}
+    pool:
+      vmImage: ubuntu-latest
