@@ -42,4 +42,4 @@ stages:
 
                 az group create --location ${{ parameters.region }} --name ${{ parameters.resourceGroupName }}
 
-                az group deployment create -g "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters $(paramterFile)
+                az group deployment create -g "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters "$(paramterFile)"
