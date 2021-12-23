@@ -39,7 +39,7 @@ stages:
                 DEPLOYMENT_NAME="single-tenant-logic-app-$(date '+%F_%H_%M_%S')"
                 echo "Using deployment name $DEPLOYMENT_NAME"
                 echo "Using parameter file $(parameterFile)"
-                
+
                 az group create --location ${{ parameters.region }} --name ${{ parameters.resourceGroupName }}
 
-                az group deployment create -G "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters @$(paremterFile)
+                az group deployment create -g "${{ parameters.resourceGroupName }}" -n "$DEPLOYMENT_NAME" --template-file "$(Pipeline.Workspace)/infrastructure/maintemplate.bicep" --parameters @$(paremterFile)
