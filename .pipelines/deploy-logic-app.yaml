@@ -31,3 +31,11 @@ stages:
         targetPath: $(System.DefaultWorkingDirectory)/infrastructure
         artifact: infrastructure
         publishLocation: pipeline
+
+- template: templates/deploy.yaml
+  parameters:
+    stageName: DeployDevelopment
+    environment: development
+    serviceConnection: MSDN
+    resourceGroupName: LA-CI-CD
+    region: eastus
