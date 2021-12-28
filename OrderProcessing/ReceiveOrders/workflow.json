@@ -120,14 +120,70 @@
                             ]
                         }
                     },
-                    "Compose_order_confirmation": {
-                        "type": "Compose",
+                    "Parse_order_with_header": {
+                        "type": "ParseJson",
                         "inputs": {
-                            "orderId": "",
-                            "customerId": ""
+                            "content": "@outputs('Compose_order')",
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "customerId": {
+                                        "type": "string"
+                                    },
+                                    "orderDate": {
+                                        "type": "string"
+                                    },
+                                    "orderNumber": {
+                                        "type": "string"
+                                    },
+                                    "orderTotal": {
+                                        "type": "number"
+                                    },
+                                    "salesTax": {
+                                        "type": "number"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "productId": {
+                                                    "type": "string"
+                                                },
+                                                "unitPrice": {
+                                                    "type": "number"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "productId",
+                                                "unitPrice",
+                                                "quantity"
+                                            ]
+                                        }
+                                    },
+                                    "id": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
                         },
                         "runAfter": {
                             "Create_order": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Compose_order_confirmation": {
+                        "type": "Compose",
+                        "inputs": {
+                            "orderId": "@{body('Parse_order_with_header')?['id']}",
+                            "customerId": "@{body('Parse_order_with_header')?['customerId']}"
+                        },
+                        "runAfter": {
+                            "Parse_order_with_header": [
                                 "Succeeded"
                             ]
                         }
@@ -152,6 +208,27 @@
                 },
                 "runAfter": {
                     "Parse_order_blob": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Send_message": {
+                "type": "ServiceProvider",
+                "inputs": {
+                    "parameters": {
+                        "entityName": "order-confirmation",
+                        "message": {
+                            "contentData": "@variables('orderConfirmations')"
+                        }
+                    },
+                    "serviceProviderConfiguration": {
+                        "connectionName": "serviceBus",
+                        "operationId": "sendMessage",
+                        "serviceProviderId": "/serviceProviders/serviceBus"
+                    }
+                },
+                "runAfter": {
+                    "For_each_order": [
                         "Succeeded"
                     ]
                 }
