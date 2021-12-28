@@ -1,0 +1,42 @@
+{
+    "orders": [
+        {
+            "customerId": "ABC123",
+            "orderDate": "2021-12-28T07:22Z",
+            "orderNumber": "123ABC",
+            "orderTotal": 129.38,
+            "salesTax": 2.99,
+            "items": [
+                {
+                    "productId": "345TYU",
+                    "unitPrice": 1.99,
+                    "quantity": 20
+                },
+                {
+                    "productId": "HSTU132",
+                    "unitPrice": 10.99,
+                    "quantity": 8
+                }                
+            ]
+        },
+        {
+            "customerId": "ABC123",
+            "orderDate": "2021-12-21T07:22Z",
+            "orderNumber": "123ABC",
+            "orderTotal": 129.38,
+            "salesTax": 2.99,
+            "items": [
+                {
+                    "productId": "345TYU",
+                    "unitPrice": 1.99,
+                    "quantity": 20
+                },
+                {
+                    "productId": "HSTU132",
+                    "unitPrice": 10.99,
+                    "quantity": 8
+                }                
+            ]
+        }        
+    ]
+}

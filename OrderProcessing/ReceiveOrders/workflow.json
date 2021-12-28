@@ -1,0 +1,118 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Parse_order_blob": {
+                "type": "ParseJson",
+                "inputs": {
+                    "content": "@triggerOutputs()?['body']",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "orders": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "customerId": {
+                                            "type": "string"
+                                        },
+                                        "orderDate": {
+                                            "type": "string"
+                                        },
+                                        "orderNumber": {
+                                            "type": "string"
+                                        },
+                                        "orderTotal": {
+                                            "type": "number"
+                                        },
+                                        "salesTax": {
+                                            "type": "number"
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "productId": {
+                                                        "type": "string"
+                                                    },
+                                                    "unitPrice": {
+                                                        "type": "number"
+                                                    },
+                                                    "quantity": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "productId",
+                                                    "unitPrice",
+                                                    "quantity"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "customerId",
+                                        "orderDate",
+                                        "orderNumber",
+                                        "orderTotal",
+                                        "salesTax",
+                                        "items"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "runAfter": {}
+            },
+            "For_each_order": {
+                "type": "Foreach",
+                "foreach": "@body('Parse_order_blob')?['orders']",
+                "actions": {
+                    "Create_or_update_item": {
+                        "type": "ServiceProvider",
+                        "inputs": {
+                            "parameters": {
+                                "databaseId": "orderProcessing",
+                                "containerId": "orders",
+                                "item": "@items('For_each_order')",
+                                "isUpsert": false
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "AzureCosmosDB",
+                                "operationId": "CreateOrUpdateDocument",
+                                "serviceProviderId": "/serviceProviders/AzureCosmosDB"
+                            }
+                        },
+                        "runAfter": {}
+                    }
+                },
+                "runAfter": {
+                    "Parse_order_blob": [
+                        "Succeeded"
+                    ]
+                }
+            }
+        },
+        "triggers": {
+            "When_a_blob_is_Added_or_Modified_in_Azure_Storage": {
+                "type": "ServiceProvider",
+                "inputs": {
+                    "parameters": {
+                        "path": "/orders"
+                    },
+                    "serviceProviderConfiguration": {
+                        "connectionName": "AzureBlob",
+                        "operationId": "whenABlobIsAddedOrModified",
+                        "serviceProviderId": "/serviceProviders/AzureBlob"
+                    }
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {}
+    },
+    "kind": "Stateful"
+}
