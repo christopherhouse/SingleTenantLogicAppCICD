@@ -5,7 +5,7 @@
             "Parse_order_blob": {
                 "type": "ParseJson",
                 "inputs": {
-                    "content": "@triggerOutputs()?['body']",
+                    "content": "@triggerOutputs()?['body'].content",
                     "schema": {
                         "type": "object",
                         "properties": {
@@ -71,13 +71,13 @@
                 "type": "Foreach",
                 "foreach": "@body('Parse_order_blob')?['orders']",
                 "actions": {
-                    "Create_or_update_item": {
+                    "Create_order": {
                         "type": "ServiceProvider",
                         "inputs": {
                             "parameters": {
                                 "databaseId": "orderProcessing",
                                 "containerId": "orders",
-                                "item": "@items('For_each_order')",
+                                "item": "@outputs('Compose_order')",
                                 "isUpsert": false
                             },
                             "serviceProviderConfiguration": {
@@ -86,8 +86,69 @@
                                 "serviceProviderId": "/serviceProviders/AzureCosmosDB"
                             }
                         },
+                        "runAfter": {
+                            "Compose_order": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Compose_Order_Id": {
+                        "type": "Compose",
+                        "inputs": {
+                            "id": "@{guid()}"
+                        },
                         "runAfter": {}
+                    },
+                    "Compose_order": {
+                        "type": "Compose",
+                        "inputs": "@union(items('For_each_order'), outputs('Compose_Order_Id'))",
+                        "runAfter": {
+                            "Compose_Order_Id": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Append_to_order_confirmations": {
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                            "name": "orderConfirmations",
+                            "value": "@outputs('Compose_order_confirmation')"
+                        },
+                        "runAfter": {
+                            "Compose_order_confirmation": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Compose_order_confirmation": {
+                        "type": "Compose",
+                        "inputs": {
+                            "orderId": "",
+                            "customerId": ""
+                        },
+                        "runAfter": {
+                            "Create_order": [
+                                "Succeeded"
+                            ]
+                        }
                     }
+                },
+                "runAfter": {
+                    "Initialize_orderConfirmations": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Initialize_orderConfirmations": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "orderConfirmations",
+                            "type": "array",
+                            "value": []
+                        }
+                    ]
                 },
                 "runAfter": {
                     "Parse_order_blob": [
@@ -101,7 +162,7 @@
                 "type": "ServiceProvider",
                 "inputs": {
                     "parameters": {
-                        "path": "/orders"
+                        "path": "orders/{name}"
                     },
                     "serviceProviderConfiguration": {
                         "connectionName": "AzureBlob",
