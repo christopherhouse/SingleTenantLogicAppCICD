@@ -92,18 +92,19 @@
                             ]
                         }
                     },
-                    "Compose_Order_Id": {
+                    "Compose_order_id_and_status": {
                         "type": "Compose",
                         "inputs": {
-                            "id": "@{guid()}"
+                            "id": "@{guid()}",
+                            "orderStatus": "new"
                         },
                         "runAfter": {}
                     },
                     "Compose_order": {
                         "type": "Compose",
-                        "inputs": "@union(items('For_each_order'), outputs('Compose_Order_Id'))",
+                        "inputs": "@union(items('For_each_order'), outputs('Compose_order_id_and_status'))",
                         "runAfter": {
-                            "Compose_Order_Id": [
+                            "Compose_order_id_and_status": [
                                 "Succeeded"
                             ]
                         }

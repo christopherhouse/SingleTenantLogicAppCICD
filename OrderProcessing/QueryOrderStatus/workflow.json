@@ -1,0 +1,229 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Query_items": {
+                "type": "ServiceProvider",
+                "inputs": {
+                    "parameters": {
+                        "databaseId": "orderProcessing",
+                        "containerId": "orders",
+                        "queryText": "SELECT * FROM c WHERE c.customerId = '@{triggerBody()?['customerId']}' AND c.orderNumber='@{triggerBody()?['orderNumber']}'"
+                    },
+                    "serviceProviderConfiguration": {
+                        "connectionName": "AzureCosmosDB",
+                        "operationId": "QueryDocuments",
+                        "serviceProviderId": "/serviceProviders/AzureCosmosDB"
+                    }
+                },
+                "runAfter": {
+                    "Initialize_responseBody": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Response": {
+                "type": "Response",
+                "kind": "http",
+                "inputs": {
+                    "statusCode": "@variables('statusCode')",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "@variables('responseBody')"
+                },
+                "runAfter": {
+                    "Condition": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Initialize_statusCode": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "statusCode",
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "runAfter": {}
+            },
+            "Initialize_responseBody": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "responseBody",
+                            "type": "object"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_statusCode": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Condition": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "greater": [
+                                "@body('Query_items')?['count']",
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "Compose_order": {
+                        "type": "Compose",
+                        "inputs": "@first(outputs('Query_items')?['body']?['items'])",
+                        "runAfter": {}
+                    },
+                    "Parse_order": {
+                        "type": "ParseJson",
+                        "inputs": {
+                            "content": "@outputs('Compose_order')",
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "customerId": {
+                                        "type": "string"
+                                    },
+                                    "orderDate": {
+                                        "type": "string"
+                                    },
+                                    "orderNumber": {
+                                        "type": "string"
+                                    },
+                                    "orderTotal": {
+                                        "type": "number"
+                                    },
+                                    "salesTax": {
+                                        "type": "number"
+                                    },
+                                    "orderStatus": {
+                                        "type": "string"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "productId": {
+                                                    "type": "string"
+                                                },
+                                                "unitPrice": {
+                                                    "type": "number"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "productId",
+                                                "unitPrice",
+                                                "quantity"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "runAfter": {
+                            "Compose_order": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Set_statusCode_to_200": {
+                        "type": "SetVariable",
+                        "inputs": {
+                            "name": "statusCode",
+                            "value": 200
+                        },
+                        "runAfter": {
+                            "Parse_order": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Set_variable": {
+                        "type": "SetVariable",
+                        "inputs": {
+                            "name": "responseBody",
+                            "value": {
+                                "orderNumber": "@{body('Parse_order')?['orderNumber']}",
+                                "customerId": "@{body('Parse_order')?['customerId']}",
+                                "orderStatus": "@{body('Parse_order')?['orderStatus']}"
+                            }
+                        },
+                        "runAfter": {
+                            "Set_statusCode_to_200": [
+                                "Succeeded"
+                            ]
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Query_items": [
+                        "Succeeded"
+                    ]
+                },
+                "else": {
+                    "actions": {
+                        "Set_statusCode_to_404": {
+                            "type": "SetVariable",
+                            "inputs": {
+                                "name": "statusCode",
+                                "value": 404
+                            },
+                            "runAfter": {}
+                        },
+                        "Set_response_body_message": {
+                            "type": "SetVariable",
+                            "inputs": {
+                                "name": "responseBody",
+                                "value": {
+                                    "message": "not found"
+                                }
+                            },
+                            "runAfter": {
+                                "Set_statusCode_to_404": [
+                                    "Succeeded"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "triggers": {
+            "manual": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "orderNumber": {
+                                "type": "string"
+                            },
+                            "customerId": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "method": "POST"
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {}
+    },
+    "kind": "Stateful"
+}
